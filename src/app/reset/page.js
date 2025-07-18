@@ -1,16 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { Suspense } from 'react';
 
-export default function ResetPasswordPage({ params }) {
-  const { token } = params;
+function ResetPasswordContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter();
+
+  useEffect(() => {
+    if (!token) {
+      toast.error('Reset token is missing');
+      router.push('/forgot-password');
+    }
+  }, [token, router]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -26,12 +36,14 @@ export default function ResetPasswordPage({ params }) {
       await axios.post('/api/reset-password', { token, password });
       toast.success('Password reset successful');
       router.push('/login');
-    } catch (error) {
+    } catch {
       toast.error('Password reset failed');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   }
+
+  if (!token) return null;
 
   return (
     <form onSubmit={handleSubmit} className="max-w-xs mx-auto mt-8">
@@ -40,123 +52,33 @@ export default function ResetPasswordPage({ params }) {
         type="password"
         placeholder="New Password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={e => setPassword(e.target.value)}
+        required
         className="w-full p-2 mb-4 border rounded"
       />
       <input
         type="password"
         placeholder="Confirm Password"
         value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
+        onChange={e => setConfirmPassword(e.target.value)}
+        required
         className="w-full p-2 mb-4 border rounded"
       />
-      <button type="submit" className="w-full bg-primary text-white p-2 rounded">
-        Reset Password
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-primary text-white p-2 rounded disabled:opacity-50"
+      >
+        {isSubmitting ? 'Resetting...' : 'Reset Password'}
       </button>
     </form>
   );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}

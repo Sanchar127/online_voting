@@ -1,11 +1,10 @@
-import { User } from '../../../models/voter';
+import { User } from '../../models/voter';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
-
-  const { token, password } = req.body;
+export async function POST(req) {
+  const body = await req.json();
+  const { token, password } = body;
 
   if (!mongoose.connection.readyState) {
     await mongoose.connect(process.env.MONGO_URL);
@@ -16,13 +15,14 @@ export default async function handler(req, res) {
     resetPasswordExpires: { $gt: Date.now() },
   });
 
-  if (!user) return res.status(400).send('Invalid or expired token');
+  if (!user) {
+    return new Response('Invalid or expired token', { status: 400 });
+  }
 
-  // Update password
   user.password = bcrypt.hashSync(password, 10);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
   await user.save();
 
-  res.status(200).send('Password updated successfully');
+  return new Response('Password updated successfully', { status: 200 });
 }

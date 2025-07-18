@@ -51,9 +51,10 @@ const Contact = () => {
       {/* Header Section */}
       <header className="text-center mb-16">
         <h1 className="text-4xl font-bold text-indigo-700">Contact Us</h1>
-        <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-          We'd love to hear from you! Please fill out the form below or reach out to us through the contact details provided.
-        </p>
+       <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+  {"We'd love to hear from you! Please fill out the form below or reach out to us through the contact details provided."}
+</p>
+
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

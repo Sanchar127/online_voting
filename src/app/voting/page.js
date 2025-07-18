@@ -22,52 +22,50 @@ export default function VotingPage() {
   const activeElection = session?.activeElection || null;
 
   useEffect(() => {
-    const fetchCandidates = async () => {
-      try {
-        const response = await axios.get('/api/candidates/');
-        const data = response.data;
+  const fetchCandidates = async () => {
+    try {
+      const response = await axios.get('/api/candidates/');
+      const data = response.data;
 
-        // Filter candidates to only include those for the active election
-        const electionCandidates = data.filter(candidate => {
-          return candidate.electionId === activeElection?.electionId;
-        });
+      const electionCandidates = data.filter(candidate => {
+        return candidate.electionId === activeElection?.electionId;
+      });
 
-        setCandidatesData(electionCandidates);
-      } catch (error) {
-        console.error("Error fetching candidates:", error);
-        toast.error("Failed to fetch candidates.");
-      }
-    };
+      setCandidatesData(electionCandidates);
+    } catch (error) {
+      console.error("Error fetching candidates:", error);
+      toast.error("Failed to fetch candidates.");
+    }
+  };
 
-    const fetchElections = async () => {
-      try {
-        const response = await axios.get('/api/elections');
-        const elections = response.data.elections || []; // Access the elections array
+  const fetchElections = async () => {
+    try {
+      const response = await axios.get('/api/elections');
+      const elections = response.data.elections || [];
 
-        if (Array.isArray(elections)) {
-          const election = elections.find(election => election.electionId === session?.activeElection?.electionId);
-          if (election) {
-            setElectionsData([election]);
+      if (Array.isArray(elections)) {
+        const election = elections.find(election => election.electionId === activeElection?.electionId);
+        if (election) {
+          setElectionsData([election]);
 
-            // Check if the municipality is in the disabledMunicipalities
-            if (election.disabledMunicipalities.includes(municipality)) {
-              toast.error("Voting is disabled in your municipality.");
-              router.push('/');
-            }
+          if (election.disabledMunicipalities.includes(municipality)) {
+            toast.error("Voting is disabled in your municipality.");
+            router.push('/');
           }
-        } else {
-          console.error("Elections data is not an array", elections);
-          toast.error("Failed to fetch valid elections data.");
         }
-      } catch (error) {
-        console.error("Error fetching elections:", error);
-        toast.error("Failed to fetch elections.");
+      } else {
+        console.error("Elections data is not an array", elections);
+        toast.error("Failed to fetch valid elections data.");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching elections:", error);
+      toast.error("Failed to fetch elections.");
+    }
+  };
 
-    fetchCandidates();
-    fetchElections();
-  }, [session?.activeElection?.electionId, municipality]);
+  fetchCandidates();
+  fetchElections();
+}, [activeElection?.electionId, municipality, router]);
 
   const normalizeString = (str) => str?.trim().toLowerCase() || '';
 
